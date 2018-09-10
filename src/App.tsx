@@ -52,8 +52,6 @@ interface IAppState {
 }
 
 class Page extends React.Component<{}, IAppState> {
-  public readonly state: IAppState;
-
   constructor(props: IAppState) {
     super(props);
     this.state = {characters: []};
