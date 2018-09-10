@@ -22,7 +22,21 @@
   font-size: large;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+header {
+  text-align: center;
+}
+
+li.character-item {
+  list-style: none;
+  border: 2px solid black;
+  text-align: left;
+  padding: 2rem;
+}
+
+li.character-item p {
+  margin-left: 5rem;
+}
+
+li.character-item h2, li.character-item p {
+  display: inline-block;
 }
