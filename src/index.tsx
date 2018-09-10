@@ -8,4 +8,5 @@ ReactDOM.render(
   <Page />,
   document.getElementById('root') as HTMLElement
 );
+
 registerServiceWorker();

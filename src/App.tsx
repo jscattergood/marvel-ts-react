@@ -12,19 +12,13 @@ class MarvelHeader extends React.Component<{}, {}> {
   }
 }
 
-interface IListContainerProps {
-  characters: ICharacterProps[]
-}
-
-class MarvelListContainer extends React.Component<IListContainerProps, {}> {
+class MarvelListContainer extends React.Component<IAppState, {}> {
   public render() {
     return (
       <ul className="characters-list-container">
         {
-          this.props.characters.map(
-            character => <MarvelCharacterItem
-              key={character.name}
-              {...character}/>
+          this.props.characters.map(character =>
+            <MarvelCharacterItem key={character.id} {...character}/>
           )
         }
       </ul>
@@ -32,47 +26,53 @@ class MarvelListContainer extends React.Component<IListContainerProps, {}> {
   }
 }
 
-interface ICharacterProps {
-  name: string,
-  power: string
-}
-
-class MarvelCharacterItem extends React.Component<ICharacterProps, {}> {
+class MarvelCharacterItem extends React.Component<ICharacter, {}> {
   public render() {
     return (
       <li className="character-item">
         <h2 className="character-name">
           {this.props.name}
         </h2>
-        <p className="character-power">
-          {this.props.power}
-        </p>
       </li>
     )
   }
 }
 
-const fakeCharacterResults = [
-  {
-    name: "Spiderman",
-    power: "Web Slinging"
-  },
-  {
-    name: "Hulk",
-    power: "Strength"
-  },
-  {
-    name: "Thor",
-    power: "Lightning"
+interface ICharacter {
+  id: string
+  name: string
+  thumbnail: {
+    path: string,
+    extension: string
   }
-];
+}
 
-class Page extends React.Component<{}, {}> {
+interface IAppState {
+  characters: ICharacter[]
+}
+
+class Page extends React.Component<{}, IAppState> {
+  public readonly state: IAppState;
+
+  constructor(props: IAppState) {
+    super(props);
+    this.state = {characters: []};
+  }
+
+  public componentDidMount() {
+    fetch('http://f8852929.ngrok.io/api/characters')
+      .then(resp => resp.json())
+      .then(resp => resp.data.results)
+      .then(resp => {
+        this.setState({characters: resp})
+      });
+  }
+
   public render() {
     return (
       <div className="characters-page">
         <MarvelHeader/>
-        <MarvelListContainer characters={fakeCharacterResults}/>
+        <MarvelListContainer characters={this.state.characters}/>
       </div>
     )
   }
