@@ -26,10 +26,27 @@ class MarvelListContainer extends React.Component<IAppState, {}> {
   }
 }
 
-class MarvelCharacterItem extends React.Component<ICharacter, {}> {
+interface ICharacterItemState {
+  selected: boolean
+}
+
+class MarvelCharacterItem extends React.Component<ICharacter, ICharacterItemState> {
+  constructor(props: ICharacter) {
+    super(props);
+    this.state = {
+      selected: false
+    };
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  public handleClick() {
+    this.setState({selected: !this.state.selected})
+  }
+
   public render() {
+    const className = `character-item ${this.state.selected ? 'selected' : ''}`;
     return (
-      <li className="character-item">
+      <li onClick={this.handleClick} className={className}>
         <h2 className="character-name">
           {this.props.name}
         </h2>
@@ -54,7 +71,9 @@ interface IAppState {
 class Page extends React.Component<{}, IAppState> {
   constructor(props: IAppState) {
     super(props);
-    this.state = {characters: []};
+    this.state = {
+      characters: []
+    };
   }
 
   public componentDidMount() {
