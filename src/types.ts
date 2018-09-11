@@ -1,11 +1,13 @@
 export enum ActionTypes {
   SELECT_CHARACTER,
-  CHARACTERS_LOADED
+  CHARACTERS_LOADED,
+  CHARACTERS_LOADING
 }
 
 export interface IAppState {
-  characters: ICharacter[],
-  selectedCharacterId: number,
+  charactersLoading: boolean
+  characters: ICharacter[]
+  selectedCharacterId: number
 }
 
 export interface ICharacter {

@@ -15,12 +15,14 @@ class MarvelHeader extends React.PureComponent<{}, {}> {
 }
 
 interface IContainerProps extends IAppState {
-  dispatch: () => void;
+  dispatch: () => void
 }
 
 const MarvelListContainer = (props: IContainerProps) => {
+  const spinnerClass = props.charactersLoading ? "characters-loading" : "characters-loading hidden";
   return (
     <ul className="characters-list-container">
+      <img className={spinnerClass} src="images/spinner.gif"/>
       {
         props.characters.map(character =>
           <MarvelCharacterItem key={character.id}
@@ -34,8 +36,8 @@ const MarvelListContainer = (props: IContainerProps) => {
 };
 
 interface ICharacterItemProps extends ICharacter {
-  dispatch: () => void;
-  selectedCharacterId: number;
+  dispatch: ({}) => void
+  selectedCharacterId: number
 }
 
 class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
@@ -45,7 +47,7 @@ class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
   }
 
   public handleClick() {
-    dispatch({type: ActionTypes.SELECT_CHARACTER, payload: this.props.id})
+    this.props.dispatch({type: ActionTypes.SELECT_CHARACTER, payload: this.props.id})
   }
 
   public render() {
@@ -86,6 +88,8 @@ class Page extends React.PureComponent<{}, IAppState> {
       .then(resp => {
         store.dispatch({type: ActionTypes.CHARACTERS_LOADED, payload: resp})
       });
+
+    store.dispatch({type: ActionTypes.CHARACTERS_LOADING});
   }
 
   public componentWillUnmount() {
