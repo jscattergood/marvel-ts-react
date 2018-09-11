@@ -34,7 +34,6 @@ li.character-item {
 }
 
 li.character-item.selected {
-  background-color: red;
 }
 
 li.character-item p {
@@ -43,4 +42,11 @@ li.character-item p {
 
 li.character-item h2, li.character-item p {
   display: inline-block;
+}
+
+img.character-item {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%)
 }

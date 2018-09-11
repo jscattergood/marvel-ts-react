@@ -1,7 +1,9 @@
 import * as React from 'react';
 import './App.css';
+import {dispatch, store} from './store';
+import {ActionTypes, IAppState, ICharacter} from './types';
 
-class MarvelHeader extends React.Component<{}, {}> {
+class MarvelHeader extends React.PureComponent<{}, {}> {
   public render() {
     return (
       <header>
@@ -12,84 +14,94 @@ class MarvelHeader extends React.Component<{}, {}> {
   }
 }
 
-class MarvelListContainer extends React.Component<IAppState, {}> {
-  public render() {
-    return (
-      <ul className="characters-list-container">
-        {
-          this.props.characters.map(character =>
-            <MarvelCharacterItem key={character.id} {...character}/>
-          )
-        }
-      </ul>
-    )
-  }
+interface IContainerProps extends IAppState {
+  dispatch: () => void;
 }
 
-interface ICharacterItemState {
-  selected: boolean
+const MarvelListContainer = (props: IContainerProps) => {
+  return (
+    <ul className="characters-list-container">
+      {
+        props.characters.map(character =>
+          <MarvelCharacterItem key={character.id}
+                               dispatch={props.dispatch}
+                               selectedCharacterId={props.selectedCharacterId}
+                               {...character}/>
+        )
+      }
+    </ul>
+  )
+};
+
+interface ICharacterItemProps extends ICharacter {
+  dispatch: () => void;
+  selectedCharacterId: number;
 }
 
-class MarvelCharacterItem extends React.Component<ICharacter, ICharacterItemState> {
-  constructor(props: ICharacter) {
+class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
+  constructor(props: ICharacterItemProps) {
     super(props);
-    this.state = {
-      selected: false
-    };
     this.handleClick = this.handleClick.bind(this);
   }
 
   public handleClick() {
-    this.setState({selected: !this.state.selected})
+    dispatch({type: ActionTypes.SELECT_CHARACTER, payload: this.props.id})
   }
 
   public render() {
-    const className = `character-item ${this.state.selected ? 'selected' : ''}`;
+    const className = `character-item ${this.selected() ? 'selected' : ''}`;
     return (
       <li onClick={this.handleClick} className={className}>
         <h2 className="character-name">
           {this.props.name}
         </h2>
+        {this.selected() ?
+          <img className='character-item'
+               src={`${this.props.thumbnail.path}.${this.props.thumbnail.extension}`}/> : null}
       </li>
     )
   }
-}
 
-interface ICharacter {
-  id: string
-  name: string
-  thumbnail: {
-    path: string,
-    extension: string
+  private selected() {
+    return this.props.selectedCharacterId === this.props.id;
   }
 }
 
-interface IAppState {
-  characters: ICharacter[]
-}
+class Page extends React.PureComponent<{}, IAppState> {
+  private unsubscribe: () => void;
 
-class Page extends React.Component<{}, IAppState> {
   constructor(props: IAppState) {
     super(props);
-    this.state = {
-      characters: []
-    };
+    this.state = store.getState();
   }
 
   public componentDidMount() {
-    fetch('http://f8852929.ngrok.io/api/characters')
+    this.unsubscribe = store.subscribe(() => {
+      this.setState(store.getState());
+    });
+
+    fetch('http://7cb45804.ngrok.io/api/characters')
       .then(resp => resp.json())
       .then(resp => resp.data.results)
       .then(resp => {
-        this.setState({characters: resp})
+        store.dispatch({type: ActionTypes.CHARACTERS_LOADED, payload: resp})
       });
   }
 
+  public componentWillUnmount() {
+    this.unsubscribe();
+  }
+
   public render() {
+    const containerProps = {
+      ...this.state,
+      dispatch
+    };
+
     return (
       <div className="characters-page">
         <MarvelHeader/>
-        <MarvelListContainer characters={this.state.characters}/>
+        <MarvelListContainer {...containerProps}/>
       </div>
     )
   }
