@@ -1,7 +1,9 @@
 import * as React from 'react';
+import {SyntheticEvent} from "react";
+import {RouteComponentProps} from "react-router";
+import {dispatch, store} from '../store/store';
+import {ActionTypes, IAppState, ICharacter} from '../store/types';
 import './App.css';
-import {dispatch, store} from './store';
-import {ActionTypes, IAppState, ICharacter} from './types';
 
 class MarvelHeader extends React.PureComponent<{}, {}> {
   public render() {
@@ -14,7 +16,7 @@ class MarvelHeader extends React.PureComponent<{}, {}> {
   }
 }
 
-interface IContainerProps extends IAppState {
+interface IContainerProps extends IAppState, RouteComponentProps<any> {
   dispatch: () => void
 }
 
@@ -26,8 +28,7 @@ const MarvelListContainer = (props: IContainerProps) => {
       {
         props.characters.map(character =>
           <MarvelCharacterItem key={character.id}
-                               dispatch={props.dispatch}
-                               selectedCharacterId={props.selectedCharacterId}
+                               {...props}
                                {...character}/>
         )
       }
@@ -35,7 +36,7 @@ const MarvelListContainer = (props: IContainerProps) => {
   )
 };
 
-interface ICharacterItemProps extends ICharacter {
+interface ICharacterItemProps extends ICharacter, RouteComponentProps<any> {
   dispatch: ({}) => void
   selectedCharacterId: number
 }
@@ -44,11 +45,18 @@ class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
   constructor(props: ICharacterItemProps) {
     super(props);
     this.handleClick = this.handleClick.bind(this);
+    this.handleDetailClick = this.handleDetailClick.bind(this);
   }
 
   public handleClick() {
     this.props.dispatch({type: ActionTypes.SELECT_CHARACTER, payload: this.props.id})
   }
+
+  public handleDetailClick(event: SyntheticEvent) {
+    event.preventDefault();
+    this.props.history.push(`/${this.props.selectedCharacterId}`)
+  }
+
 
   public render() {
     const className = `character-item ${this.selected() ? 'selected' : ''}`;
@@ -58,8 +66,15 @@ class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
           {this.props.name}
         </h2>
         {this.selected() ?
-          <img className='character-item'
-               src={`${this.props.thumbnail.path}.${this.props.thumbnail.extension}`}/> : null}
+          <div className="character-item">
+            <img className="character-item-image"
+                    src={`${this.props.thumbnail.path}.${this.props.thumbnail.extension}`}/>
+            <button className="character-item-detail-button">Details</button>
+            <form onSubmit={this.handleDetailClick}>
+              <button type="submit">Details</button>
+            </form>
+          </div>
+          : null}
       </li>
     )
   }
@@ -69,10 +84,10 @@ class MarvelCharacterItem extends React.PureComponent<ICharacterItemProps, {}> {
   }
 }
 
-class Page extends React.PureComponent<{}, IAppState> {
+class CharactersPage extends React.PureComponent<RouteComponentProps<any>, IAppState> {
   private unsubscribe: () => void;
 
-  constructor(props: IAppState) {
+  constructor(props: RouteComponentProps<any>) {
     super(props);
     this.state = store.getState();
   }
@@ -86,10 +101,10 @@ class Page extends React.PureComponent<{}, IAppState> {
       .then(resp => resp.json())
       .then(resp => resp.data.results)
       .then(resp => {
-        store.dispatch({type: ActionTypes.CHARACTERS_LOADED, payload: resp})
+        dispatch({type: ActionTypes.CHARACTERS_LOADED, payload: resp})
       });
 
-    store.dispatch({type: ActionTypes.CHARACTERS_LOADING});
+    dispatch({type: ActionTypes.CHARACTERS_LOADING});
   }
 
   public componentWillUnmount() {
@@ -99,6 +114,7 @@ class Page extends React.PureComponent<{}, IAppState> {
   public render() {
     const containerProps = {
       ...this.state,
+      ...this.props,
       dispatch
     };
 
@@ -111,4 +127,4 @@ class Page extends React.PureComponent<{}, IAppState> {
   }
 }
 
-export default Page;
+export default CharactersPage;
